@@ -24,12 +24,22 @@ export default function RenderStudyExperience({ onClose }: { onClose: () => void
   useEffect(() => {
     root.current?.focus();
 
-    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) setPhase('interactive');
-    const timers = reduced ? [] : SHOWCASE_INTRO.map(([delay, next]) => window.setTimeout(() => setPhase(next), delay));
+    const motionPreference = window.matchMedia('(prefers-reduced-motion: reduce)');
+    const timers = motionPreference.matches ? [] : SHOWCASE_INTRO.map(([delay, next]) => window.setTimeout(() => setPhase(next), delay));
+    const skipIntro = () => {
+      if (!motionPreference.matches) return;
+      timers.forEach(window.clearTimeout);
+      setPhase('interactive');
+    };
+    skipIntro();
+    motionPreference.addEventListener('change', skipIntro);
     const overflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
-    return () => { timers.forEach(window.clearTimeout); document.body.style.overflow = overflow; };
+    return () => {
+      timers.forEach(window.clearTimeout);
+      motionPreference.removeEventListener('change', skipIntro);
+      document.body.style.overflow = overflow;
+    };
   }, []);
   useEffect(() => {
     const element = root.current;
@@ -58,8 +68,22 @@ export default function RenderStudyExperience({ onClose }: { onClose: () => void
 
     <div className="study-stack" aria-hidden="true">{renderSlides.map((item, i) => <img key={i} src={item.image} alt="" style={{ '--i': i } as CSSProperties} />)}</div>
     <div className="study-brackets" aria-hidden="true"><svg viewBox="0 0 116 260"><path d="M29 0H116V5A104 125 0 0 0 116 255V260H29L0 231V29Z" /></svg><svg viewBox="0 0 116 260"><path d="M29 0H116V5A104 125 0 0 0 116 255V260H29L0 231V29Z" /></svg></div>
-    <div className="study-intro-stream" aria-hidden="true">{[...renderSlides].reverse().map(item => <img key={item.title} src={item.image} alt="" />)}</div>
-    <div className="study-viewport"><div className="study-track" data-snapping={snapping} style={{ transform: `translate3d(0,${-railPosition * 46}vh,0)` }}>{[...renderSlides, ...renderSlides, ...renderSlides].map((item,i) => <button key={i} className={i === railPosition ? 'is-active' : ''} tabIndex={i === railPosition && phase === 'interactive' ? 0 : -1} onClick={() => setZoom(true)} aria-label={`放大 ${item.title}`}><img src={item.image} alt={item.title} loading={i >= count - 1 && i <= count + 7 ? 'eager' : 'lazy'} /></button>)}</div></div>
+    <div className="study-viewport">
+      <div className="study-track" data-snapping={snapping}
+        style={{ transform: `translate3d(0,${-railPosition * 46}vh,0)`, '--study-descent-offset': `${-count * 46}vh` } as CSSProperties}
+        onAnimationEnd={event => {
+          if (event.target === event.currentTarget && event.animationName === 'studio-descend' && phase === 'descend') setPhase('interactive');
+        }}>
+        {[...renderSlides, ...renderSlides, ...renderSlides].map((item, i) => (
+          <button key={i} className={i === railPosition ? 'is-active' : ''}
+            data-intro-slide={i > count + 1 && i <= count * 2}
+            tabIndex={i === railPosition && phase === 'interactive' ? 0 : -1}
+            onClick={() => setZoom(true)} aria-label={`放大 ${item.title}`}>
+            <img src={item.image} alt={item.title} loading={i >= count - 1 && i <= count * 2 ? 'eager' : 'lazy'} />
+          </button>
+        ))}
+      </div>
+    </div>
     <div className="study-meta" key={index} aria-live="polite"><div className="study-scene">{slide.scene}</div><div className="study-photo-number" aria-label={`第 ${index + 1} 张照片`}>{index + 1}</div></div>
     <footer className="study-footer"><span>滚动浏览 / RENDER STUDY</span></footer>
     {zoom && <div className="study-zoom" onClick={() => setZoom(false)}><button autoFocus aria-label="关闭放大"><X /></button><img src={slide.image} alt={slide.title} /></div>}
