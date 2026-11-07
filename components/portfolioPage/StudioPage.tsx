@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react';
 import { ArrowDown, ArrowUpRight } from 'lucide-react';
 import { useReducedMotion } from 'framer-motion';
 import ComputerIntro from './ComputerIntro';
@@ -43,7 +43,7 @@ export default function PortfolioTemplate() {
   const galleryCount = portfolioWorks.length;
   const layout = getResponsiveLayout(viewport);
   const frame = sampleTimeline(t, layout.compact, galleryCount);
-  const gallery = getGalleryLayout(viewport, portfolioWorks);
+  const gallery = useMemo(() => getGalleryLayout(viewport, portfolioWorks), [viewport]);
   const galleryFrame = sampleGalleryLayoutProgress(frame.galleryProgress, gallery);
   const sceneT = frame.sceneProgress;
   const opening = sampleOpeningLayers(sceneT, Boolean(reducedMotion));
@@ -98,8 +98,15 @@ export default function PortfolioTemplate() {
     let raf = 0;
     let displayed = scrollProgress.current;
     let lastTime = 0;
-    let held = false;
-    let releaseTimer = 0;
+    let lastWheel = -Infinity;
+    let wheelDistance = 0;
+    let wheelHandled = false;
+    let destination: number | null = null;
+    let settleUntil = 0;
+    let touchStart: { x: number; y: number } | null = null;
+    const stops = [0, ...modules.flatMap(({ id }) => id === 'works'
+      ? gallery.positions.map(position => progressForGalleryProgress(position, galleryCount))
+      : [progressForModule(id, galleryCount)])];
     const readProgress = () => {
       const length = element.scrollHeight - element.clientHeight;
       scrollProgress.current = length > 0 ? Math.min(1, Math.max(0, element.scrollTop / length)) : 0;
@@ -121,29 +128,48 @@ export default function PortfolioTemplate() {
       readProgress();
       if (!raf) raf = window.requestAnimationFrame(animate);
     };
-    // Finish the overview before accepting the next wheel gesture, including trackpad momentum.
+    const advance = (direction: number) => {
+      if (dialogScroll.current) return;
+      if (destination !== null && Math.abs(element.scrollTop - destination) > 2 && performance.now() < settleUntil) return;
+      const length = element.scrollHeight - element.clientHeight;
+      const top = element.scrollTop;
+      const candidates = direction > 0 ? stops : [...stops].reverse();
+      const stop = candidates.find(progress => direction * (progress * length - top) > 2);
+      if (stop === undefined) return;
+      destination = stop * length;
+      settleUntil = performance.now() + 1200;
+      element.scrollTo({ top: destination, behavior: reducedMotion ? 'instant' : 'smooth' });
+    };
     const onWheel = (event: WheelEvent) => {
-      if (event.ctrlKey || dialogScroll.current || event.deltaY <= 0) return;
-      const delta = event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1);
-      const overview = progressForModule('about', galleryCount) * (element.scrollHeight - element.clientHeight);
-      if (!held && Math.abs(element.scrollTop - overview) <= 2) {
-        event.preventDefault();
-        element.scrollTo({ top: progressForModule('fragments', galleryCount) * (element.scrollHeight - element.clientHeight), behavior: reducedMotion ? 'instant' : 'smooth' });
-        held = true;
-        window.clearTimeout(releaseTimer);
-        releaseTimer = window.setTimeout(() => { held = false; }, 50);
-        return;
+      if (event.ctrlKey || dialogScroll.current || !event.deltaY) return;
+      event.preventDefault();
+      const time = performance.now();
+      if (time - lastWheel > 160) {
+        wheelDistance = 0;
+        wheelHandled = false;
       }
-      if (held || (element.scrollTop < overview - 1 && element.scrollTop + delta >= overview)) {
-        event.preventDefault();
-        if (!held) { element.scrollTop = overview; onScroll(); }
-        held = true;
-        window.clearTimeout(releaseTimer);
-        releaseTimer = window.setTimeout(() => { held = false; }, 50);
-      }
+      lastWheel = time;
+      if (wheelHandled) return;
+      wheelDistance += event.deltaY * (event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? element.clientHeight : 1);
+      if (Math.abs(wheelDistance) < 12) return;
+      wheelHandled = true;
+      advance(Math.sign(wheelDistance));
+    };
+    const onTouchStart = (event: TouchEvent) => {
+      touchStart = event.touches.length === 1 ? { x: event.touches[0].clientX, y: event.touches[0].clientY } : null;
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      if (!touchStart || event.touches.length) return;
+      const { clientX, clientY } = event.changedTouches[0];
+      const delta = touchStart.y - clientY;
+      const horizontal = touchStart.x - clientX;
+      touchStart = null;
+      if (Math.abs(delta) >= 40 && Math.abs(delta) > Math.abs(horizontal)) advance(Math.sign(delta));
     };
     element.addEventListener('scroll', onScroll, { passive: true });
     element.addEventListener('wheel', onWheel, { passive: false });
+    element.addEventListener('touchstart', onTouchStart, { passive: true });
+    element.addEventListener('touchend', onTouchEnd, { passive: true });
     readProgress();
     displayed = scrollProgress.current;
     setT(displayed);
@@ -151,9 +177,10 @@ export default function PortfolioTemplate() {
       element.removeEventListener('scroll', onScroll);
       element.removeEventListener('wheel', onWheel);
       window.cancelAnimationFrame(raf);
-      window.clearTimeout(releaseTimer);
+      element.removeEventListener('touchstart', onTouchStart);
+      element.removeEventListener('touchend', onTouchEnd);
     };
-  }, [reducedMotion, galleryCount]);
+  }, [reducedMotion, galleryCount, gallery.positions]);
 
   useLayoutEffect(() => {
     const element = track.current;

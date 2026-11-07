@@ -623,3 +623,14 @@ body.archive-page-open { background: #f3f3f3; color: #171717; overflow: hidden; 
 .fragment-study figcaption { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 12px; font-size: 11px; color: #666; }
 .fragment-study figcaption a { font-size: 9px; color: #888; }
 @media(max-width:720px) { .archive-desk-stat-label, .archive-desk-fragment-facts { font-size: 19px; } }
+
+/* Keep the decoded outgoing frame under the incoming photo during its fade. */
+.archive-image-dialog .album-image { position: relative; }
+.album-photo-layer { position: absolute; inset: 0; display: grid; place-items: center; background: #fff; }
+.album-photo-layer[data-layer="current"] { z-index: 1; }
+.album-photo-layer[data-layer="pending"] { visibility: hidden; }
+.album-photo-layer[data-fade="true"] { animation: album-crossfade 220ms ease-out both; }
+.archive-image-dialog .album-photo-layer img { animation: none; }
+.archive-scroll-track { touch-action: pan-x pinch-zoom; }
+@keyframes album-crossfade { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .album-photo-layer[data-fade="true"] { animation: none; } }
