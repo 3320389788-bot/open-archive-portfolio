@@ -20,7 +20,7 @@
     ]
   },
   "include": [
-    "main.tsx",
+    "studio-preview.tsx",
     "components/**/*.ts",
     "components/**/*.tsx",
     "vite.config.ts"

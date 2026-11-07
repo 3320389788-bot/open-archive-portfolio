@@ -34,4 +34,12 @@ On the deployed site, the same font notices are available under assets/template/
 
 ## Short poetry excerpts
 
-The credited notes contain short excerpts from Walt Whitman's A Clear Midnight, William Blake's Auguries of Innocence, and Emily Dickinson's Hope is the thing with feathers. Author and source links remain beside these notes and in the README. These underlying poems are identified as public domain by the cited sources; they are not claimed as original template text or relicensed as such.
+The credited notes contain short excerpts from William Blake's Auguries of Innocence, and Emily Dickinson's Hope is the thing with feathers. Author and source links remain beside these notes and in the README. These underlying poems are identified as public domain by the cited sources; they are not claimed as original template text or relicensed as such.
+
+## Fragments reference drawings
+- `references/massing-study.jpg`: Villa Arcipelago concept sketch, Gianni Botsford Architects: https://www.giannibotsford.com/projects/villa-arcipelago/
+- `references/spatial-composition.jpg`: Gap House spatial study, Studio Gluten: https://www.studiogluten.com/copy-2-of-projects/gap-house
+These third-party reference drawings are not covered by the project's MIT license.
+
+## Viewer label font
+LXGW WenKai TC (subset) is distributed under the SIL Open Font License; see `licenses/lxgw-wenkai-tc-OFL.txt`.
