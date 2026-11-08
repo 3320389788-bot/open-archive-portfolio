@@ -7,6 +7,8 @@ import { contactEmail, contactPhone, otherPortfolioUrl, portfolioWorks, reasons 
 import { portfolioModules } from './modules';
 import type { ModuleId } from './studioTimeline';
 import ResumeDetails from './ResumeDetails';
+import perspectiveSpiral from './perspectiveArt/spiral.png?url';
+import perspectiveSideView from './perspectiveArt/side-view.png?url';
 
 export type ArchiveDetail =
   | { type: 'module'; id: ModuleId }
@@ -62,6 +64,13 @@ export default function ArchiveDialog({ detail, onClose, onView, onOpenRenderStu
       {detail && <div className="archive-detail-paper">
         {documentKind ? <DocumentGallery kind={documentKind} onBack={() => setDocumentKind(null)} /> : <>
         {isResume ? <ResumeDetails /> : !work?.album && <h2 id="archive-detail-title">{work?.title || module?.label}</h2>}
+        {module?.id === 'perspective' && <>
+          <p className="archive-detail-intro">它意味着跳出固有的框架，用新的视角看待问题、事物甚至自己。</p>
+          <div className="archive-perspective-art">
+            <img src={perspectiveSpiral} alt="平面的螺旋" width={1254} height={1254} draggable={false} />
+            <img src={perspectiveSideView} alt="从侧面看向上展开的螺旋" width={1254} height={1254} draggable={false} />
+          </div>
+        </>}
         {module?.id === 'craft' && <div className="archive-document-items">
           {[
             ['01', 'Floor Plan', '以平面划分生活的秩序'],
