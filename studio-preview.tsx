@@ -5,8 +5,8 @@ import '@fontsource/inter/latin-500.css';
 import '@fontsource/inter/latin-600.css';
 import '@fontsource/inter/latin-700.css';
 import './base.css';
-import PortfolioTemplate from './components/portfolioPage/StudioPage';
+import PortfolioEntrance from './components/portfolioPage/PortfolioEntrance';
 
 const element = document.getElementById('root');
 if (!element) throw new Error('Missing portfolio root');
-createRoot(element).render(<StrictMode><PortfolioTemplate /></StrictMode>);
+createRoot(element).render(<StrictMode><PortfolioEntrance /></StrictMode>);

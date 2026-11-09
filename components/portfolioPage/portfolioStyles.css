@@ -1,6 +1,15 @@
 @font-face { font-family: 'Archive Space'; src: url('/assets/template/fonts/space-grotesk-bold.ttf') format('truetype'); font-style: normal; font-weight: 700; font-display: swap; }
 @font-face { font-family: 'Archive Mono'; src: url('/assets/template/fonts/ibm-plex-mono-regular.ttf') format('truetype'); font-style: normal; font-weight: 400; font-display: swap; }
 body.archive-page-open { background: #f3f3f3; color: #171717; overflow: hidden; }
+.archive-entrance-loading { position: fixed; inset: 0; display: grid; place-items: center; padding: 24px; background: #f3f3f3; color: #171717; }
+.archive-entrance-panel { width: min(100%, 320px); }
+.archive-entrance-brand { font: 700 32px/1 'Archive Space', sans-serif; letter-spacing: -1px; margin-bottom: 32px; }
+.archive-entrance-brand span { margin-left: 4px; font: 400 11px/1 'Archive Mono', monospace; letter-spacing: .08em; }
+.archive-entrance-label { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 10px; font-size: 13px; }
+.archive-entrance-label span:last-child { font-family: 'Archive Mono', monospace; font-variant-numeric: tabular-nums; }
+.archive-entrance-meter { height: 2px; overflow: hidden; background: #17171724; }
+.archive-entrance-meter > div { width: 100%; height: 100%; transform-origin: left; background: #171717; transition: transform 180ms ease-out; }
+@media (prefers-reduced-motion: reduce) { .archive-entrance-meter > div { transition: none; } }
 .archive-page { --ink: #171717; --accent: #f3f3f3; --paper: #ffffff; --canvas: #f3f3f3; --page-gutter: 32px; --nav-inset: 14px; --header-height: 76px; --footer-height: 65px; position: fixed; top: 0; left: 0; width: 100%; height: 100dvh; min-width: 0; overflow: clip; container: archive-viewport / inline-size; color: var(--ink); background: var(--canvas); font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif; }
 .archive-page *, .archive-page *::before, .archive-page *::after { box-sizing: border-box; }
 .archive-page a { color: inherit; text-decoration: none; }
